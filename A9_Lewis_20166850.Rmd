@@ -1,0 +1,93 @@
+---
+title: "Assignment 9"
+author: "Isabeau Lewis"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Git
+https://github.com/isabeaulewis/BIOL432_Assignment9
+
+# Loading libraries
+```{r}
+library(doParallel)
+library(parallel)
+library(foreach)
+```
+
+# Running detectCores()
+```{r}
+Cores <- detectCores() 
+print(Cores)
+```
+
+According to the function, my system has 8 cores.
+
+# Writing a for loop & tracking the time it takes to run
+```{r}
+current <- Sys.time() 
+
+Samples <- vector(mode="numeric", length=4000)
+
+for (i in 1:4000){
+  Sample <- mean(rnorm(n=100000, mean=10, sd=3))
+  Samples[i] <- Sample
+}
+
+after <- Sys.time()
+
+Time <- after - current
+print(Time)
+```
+
+# Predicting how much faster a multi-threaded program will run 
+```{r}
+prediction <- as.numeric(gsub("[[:alpha:]]", "", Time))
+print(prediction)/detectCores()
+```
+
+I predict a multi-threaded program will run in about 6.7 seconds, 1/8 of the time it took to run the original code.
+
+# Running in parallel
+
+```{r}
+# Finding the number of cores in my computer
+Cores <- parallel::makeCluster(detectCores()) 
+
+# Activating multi-threading based on the number of cores
+doParallel::registerDoParallel(Cores)
+
+current2 <- Sys.time() # to track runtime
+
+# Running parallel R code
+parallel <- foreach(i=1:1000, .combine=rbind) %dopar% {
+  rnorm(n=100000, mean=10, sd=3)
+}
+
+after2 <- Sys.time() # to track runtime
+
+Time2 <- after2 - current2
+print(Time2)
+
+# De-activating multi-threading
+parallel::stopCluster(Cores) 
+```
+
+I can't run with 4000, but running with 1000 gives a runtime of 8.89 seconds. 
+
+
+# Summarizing results of theoretical vs. real run-time
+The theoretical runtime is shorter than the actual runtime because while the theoretical runtime just divides the time it took to run originally by the number of cores I have, the actual runtime may also be affected by the power of my computer.
+
+
+
+
+
+
+
+
+
